@@ -1,0 +1,31 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+#This is a Vagrantfile to build a box and checkout Apache Nifi
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/trusty64"
+  config.vm.network "forwarded_port", guest: 80, host: 8080
+  config.vm.network "private_network", ip: "192.168.200.20"
+  config.vm.synced_folder "/home/rviana/Documents/vagrant/files", "/opt/files"
+
+  config.vm.provider :virtualbox do |vb|
+    vb.customize ["modifyvm", :id, "--ioapic", "on"]
+    vb.memory = 2048
+    vb.cpus = 2
+    vb.name = "nifi-local"
+  end
+
+   config.vm.provision "shell",
+    inline: "sudo apt-get update;
+    sudo add-apt-repository ppa:openjdk-r/ppa -y;
+    sudo apt-get update;
+    sudo apt-get install openjdk-8-jdk openjdk-8-jre -y;
+    export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64;
+    sudo wget http://www.apache.org/dist/nifi/1.9.2/nifi-1.9.2-bin.tar.gz;
+    sudo tar xvzf nifi-1.9.2-bin.tar.gz;
+    sudo mv nifi-1.9.2 /opt/nifi;
+    sudo rm -rf nifi-1.9.2-bin.tar.gz;
+    sudo /opt/nifi/bin/nifi.sh install;
+    sudo service nifi start;"
+end
